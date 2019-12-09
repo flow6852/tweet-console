@@ -11,6 +11,7 @@ import Data.Text.IO
 parserCommand :: [Text] -> ([Text] -> [String] -> IO())
 parserCommand command = case Prelude.head command of "tweet" -> tweetCommand (Prelude.tail command)
                                                      "dm"    -> dmCommand (Prelude.tail command)
+                                                     "help"  -> helpCommand
                                                      _       -> errorCommand
 
 tweetCommand :: [Text] -> ([Text] -> [String] -> IO())
@@ -72,3 +73,11 @@ errorCommand command botconf = do
  Prelude.putStr "error :: "
  Data.Text.IO.putStrLn $ Data.Text.unwords command
 
+helpCommand :: [Text] -> [String] -> IO()
+helpCommand command botconf = do
+ Prelude.putStrLn "usage"
+ Prelude.putStrLn "tweet get ... get your timeline"
+ Prelude.putStrLn "tweet post text ... post text"
+ Prelude.putStrLn "tweet rm id ... remove tweet id"
+ Prelude.putStrLn "dm get ... get all direct message"
+ Prelude.putStrLn "dm post id text ... sending directmessage for id"

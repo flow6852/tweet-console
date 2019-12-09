@@ -92,7 +92,7 @@ $(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 }  ''User)
 --get TL Parser
 data GetTL = GetTL { gtl_text :: Text
                    , gtl_id_str :: Text
-                   , gtl_in_reply_to_status_id_str :: Text
+                   , gtl_in_reply_to_status_id_str :: Maybe Text
                    , gtl_user :: User } deriving (Show)
 $(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 } ''GetTL)
 
@@ -123,7 +123,7 @@ getMyTweet botconf = do
 getTL :: [String] -> IO (Either String [GetTL])
 getTL botconf = do
  response <- do
-  req <- parseRequest $ "https://api.twitter.com/1.1/statuses/home_timeline.json?count=1"
+  req <- parseRequest $ "https://api.twitter.com/1.1/statuses/home_timeline.json?count=200"
   httpManager req botconf
  return $ eitherDecode $ responseBody response
 
