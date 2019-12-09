@@ -4,53 +4,71 @@
 
 module Parser ( parserCommand ) where
 
-parserCommand :: [String] -> [String] -> IO ()
-parserCommand command botconf = case head command of "tweet" -> tweetCommand (last command) botconf
-                                                     "dm"    -> dmCommand (last command) botconf
-                                                     "exit"  -> exitCommand
+import TwitterAPI
+import Data.Text
+import Data.Text.IO
 
-tweetCommand :: [String] -> [String] -> IO ()
-tweetCommand command botconf = case head command of "get"  -> tweetGetCommand botconf
-                                                    "post" -> tweetPostCommand (last command) botconf
-                                                    "rm"   -> tweetRmCommand (last command) botconf
+parserCommand :: [Text] -> ([Text] -> [String] -> IO())
+parserCommand command = case Prelude.head command of "tweet" -> tweetCommand (Prelude.tail command)
+                                                     "dm"    -> dmCommand (Prelude.tail command)
+                                                     _       -> errorCommand
 
-dmCommand :: [String] -> [String] -> IO()
-dmCommand command botconf = case head command of "get"  -> dmGetCommand (last command) botconf
-                                                 "post" -> dmPostCommand (last command) botconf
+tweetCommand :: [Text] -> ([Text] -> [String] -> IO())
+tweetCommand command = case Prelude.head command of "get"  -> tweetGetCommand
+                                                    "post" -> tweetPostCommand
+                                                    "rm"   -> tweetRmCommand
+                                                    _      -> errorCommand
 
-tweetGetCommand botconf = do
- tl <- (\x -> case x of Right e -> error e
-                        Left l  -> l      ) <$> getTL botconf
+dmCommand :: [Text] -> ([Text] -> [String] -> IO())
+dmCommand command = case Prelude.head command of "get"  -> dmGetCommand 
+                                                 "post" -> dmPostCommand
+                                                 _      -> errorCommand
+
+tweetGetCommand command botconf = do
+ tl <- (\x -> case x of Left e  -> error e
+                        Right l -> l      ) <$> getTL botconf
  printTimeLine tl
   where
    printTimeLine :: [GetTL] -> IO()
    printTimeLine [] = return ()
    printTimeLine (t:tl) = do
-    putStrLn "================================="
-    putStrLn $ gtl_text t
-    putStr "id :: "
-    putStrLn $ gtl_id_str t
-    putStr "screen_name :: "
-    putStrLn $ (gur_screen_name.gtl_user) t
+    Prelude.putStrLn "================================="
+    Data.Text.IO.putStrLn $ gtl_text t
+    Prelude.putStr "id :: "
+    Data.Text.IO.putStrLn $ gtl_id_str t
+    Prelude.putStr "screen_name :: "
+    Data.Text.IO.putStrLn $ (gur_screen_name.gtl_user) t
     printTimeLine tl
  
-tweetPostCommand command botconf = tweet command "" botconf
-tweetRmCommand command botconf = rmTweet command botconf
+tweetPostCommand command botconf = tweet (Data.Text.unwords (Prelude.drop 2 command)) "" botconf >> return ()
+tweetRmCommand command botconf = rmTweet (command !! 2) botconf >> return ()
 
-dmGetCommand = getDM botconf
-dmGetCommand :: String -> [String] -> IO()
-dmGetCommand screen_name botconf = do
- id <- (\x -> case x of Right e -> error e
-                        Left l  -> l      ) <$> getUser screen_name botconf
- printDM $ gdm_events dm 
+dmGetCommand :: [Text] -> [String] -> IO()
+dmGetCommand command botconf = do
+ dm <- (\x -> case x of Left e  -> error e
+                        Right l -> gdm_events l) <$> getDM botconf
+ printDM dm
   where
    printDM :: [GetEvents] -> IO()
    printDM [] = return ()
    printDM (d:dm) = do
-    putStrLn "================================="
-    putStrLn $ (gmd_text.gmc_message_data.gev_message_create) d
-    putStr "id :: "
-    putStrLn $ () d
+    Prelude.putStrLn "================================="
+    Data.Text.IO.putStrLn $ (gmd_text.gmc_message_data.gev_message_create) d
+    Prelude.putStr "id :: "
+    Data.Text.IO.putStrLn $ (gmc_sender_id.gev_message_create) d
     printDM dm
  
+
+dmPostCommand :: [Text] -> [String] -> IO()
+dmPostCommand command botconf = do
+ let screen_name = command !! 2
+     text = command !! 3
+ id <- (\x -> case x of Left e  -> error e
+                        Right l -> (gur_id_str.Prelude.head) l) <$> getUser text botconf
+ postDM text id botconf
+
+errorCommand :: [Text] -> [String] -> IO()
+errorCommand command botconf = do
+ Prelude.putStr "error :: "
+ Data.Text.IO.putStrLn $ Data.Text.unwords command
 

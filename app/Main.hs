@@ -1,6 +1,8 @@
 module Main where
 
-import Lib
+import TwitterAPI
+import Console
+import Parser
 
 main :: IO ()
-main = someFunc
+main = getAPIkeys >>= getCommand

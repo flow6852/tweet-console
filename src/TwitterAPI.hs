@@ -84,6 +84,11 @@ data PostDM = PostDM { pdm_event :: PostEvent
                      } deriving (Show)
 $(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 } ''PostDM)
 
+--get User parser
+data User = User { gur_id_str :: Text
+                 , gur_screen_name :: Text } deriving (Show)
+$(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 }  ''User)
+
 --get TL Parser
 data GetTL = GetTL { gtl_text :: Text
                    , gtl_id_str :: Text
@@ -94,11 +99,6 @@ $(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 } ''GetTL)
 --post TL parser
 data PostTL = PostTL { ptl_id_str :: Text} deriving (Show)
 $(deriveJSON defaultOptions {fieldLabelModifier = Prelude.drop 4 } ''PostTL)
-
---get User parser
-data User = User { gur_id_str :: Text
-                 , gur_screen_name :: Text } deriving (Show)
-$(deriveJSON defaultOptions { fieldLabelModifier = Prelude.drop 4 }  ''User)
 
 --get Mention parser
 data GetMention = GetMention { gmt_id_str :: Text
@@ -204,11 +204,12 @@ botuser botsparameter = do
 getAPIkeys :: IO [String]
 getAPIkeys = do
  hSetEcho stdin False
- subGetAPI ["API key :", "API secret key :", "Access token :", "Access token secret :"]
+ apis <- subGetAPI ["API key :", "API secret key :", "Access token :", "Access token secret :"]
  hSetEcho stdin True
+ return apis
  where
-  subGetAPI :: [String] -> IO[ String]
-  subGetAPI [] = []
+  subGetAPI :: [String] -> IO[String]
+  subGetAPI [] = return []
   subGetAPI (m:messages) = do
    Prelude.putStr m 
    hFlush stdout

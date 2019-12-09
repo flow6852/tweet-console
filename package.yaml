@@ -24,6 +24,16 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - http-conduit
+  - authenticate-oauth
+  - text
+  - aeson
+  - bytestring
+  - mtl
+  - directory
+  - time
+  - vector
 
 executables:
   tweet-console-exe:
