@@ -168,8 +168,8 @@ tweet tw twid botconf = do
 
 rmTweet :: Text -> [String] -> IO()
 rmTweet twid botconf = do
- req     <- parseRequest $ "https://api.twitter.com/1.1/statuses/destroy.json?id=" ++ unpack twid
- httpManager req botconf
+ req     <- parseRequest $ "https://api.twitter.com/1.1/statuses/destroy/" ++ unpack twid ++ ".json"
+ httpManager (urlEncodedBody [] req) botconf 
  return ()
 
 postDM :: Text -> Text -> [String] -> IO ()

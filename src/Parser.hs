@@ -42,7 +42,7 @@ tweetGetCommand command botconf = do
     printTimeLine tl
  
 tweetPostCommand command botconf = tweet (Data.Text.unwords (Prelude.drop 2 command)) "" botconf >> return ()
-tweetRmCommand command botconf = rmTweet (command !! 2) botconf >> return ()
+tweetRmCommand command botconf = print (command !! 2) >> rmTweet (command !! 2) botconf >> return ()
 
 dmGetCommand :: [Text] -> [String] -> IO()
 dmGetCommand command botconf = do
